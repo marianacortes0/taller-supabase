@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - homeworksproject
+name: Build and deploy React Vite app to Azure Web App - homeworksproject
 
 on:
   push:
@@ -18,37 +15,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
+          node-version: '20.x'
+          cache: 'npm'               # ✅ cachea node_modules entre runs
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+      - name: Install dependencies
+        run: npm ci                  # más reproducible que npm install en CI
 
-      - name: Upload artifact for deployment job
+      - name: Build
+        run: npm run build
+        env:
+          # ✅ Supabase: deben estar en Settings > Secrets del repo
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Copy web.config to dist   # ✅ necesario para que IIS sirva la SPA
+        run: cp web.config dist/web.config
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: .
+          name: static-app
+          path: dist                 # ✅ solo el output del build, no el repo completo
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    #environment: production
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
-      
+          name: static-app
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -56,8 +60,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F1B8AA5E901344ECAF261394722D45DF }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_03BE4D9863304BCBB3B83589CFEFD057 }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'homeworksproject'
