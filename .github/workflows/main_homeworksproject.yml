@@ -21,22 +21,39 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '24.x'
+          node-version: '20.x'  # Cambiado a 20.x que es más estable para Vite
 
-      - name: npm install, build, and test
+      - name: Install dependencies
         env:
           ENVIRONMENT: PRODUCTION
           NODE_ENV: production
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm ci --only=production
+          # Instalar dependencias de desarrollo necesarias para el build
+          npm install -D vite @vitejs/plugin-react @tailwindcss/vite typescript
+
+      - name: Build application
+        env:
+          ENVIRONMENT: PRODUCTION
+          NODE_ENV: production
+        run: |
+          npm run build
+
+      - name: Prepare for deployment
+        run: |
+          # Crear estructura para deployment
+          mkdir -p deployment
+          cp -r dist deployment/
+          cp package.json deployment/
+          cp package-lock.json deployment/
+          # Copiar server.js si existe para servir la app
+          if [ -f server.js ]; then cp server.js deployment/; fi
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: deployment/
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,6 +75,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F1B8AA5E901344ECAF261394722D45DF }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_03BE4D9863304BCBB3B83589CFEFD057 }}
 
+      - name: Install production dependencies
+        run: |
+          npm ci --only=production
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -65,8 +86,3 @@ jobs:
           app-name: 'homeworksproject'
           slot-name: 'Production'
           package: .
-        env:
-          ENVIRONMENT: PRODUCTION
-          NODE_ENV: production
-          WEBSITE_NODE_DEFAULT_VERSION: '24.x'
-          
