@@ -363,41 +363,6 @@ Content-Type: application/json
 
 La base de datos está en **PostgreSQL** gestionado por Supabase. Todas las tablas tienen **Row Level Security (RLS)** habilitado.
 
-```
-┌────────────┐       ┌─────────────┐       ┌──────────┐
-│   users    │──┐    │  homeworks  │──────▶│  grades  │
-│────────────│  │    │─────────────│       │──────────│
-│ id (PK)    │  │    │ id (PK)     │       │ id (PK)  │
-│ email      │  └───▶│ user_id(FK) │       │homework_id│
-│ name       │       │ course_id(FK│       │ user_id  │
-│ role       │       │ title       │       │ score    │
-│ created_at │       │ description │       │ feedback │
-└────────────┘       │ due_date    │       └──────────┘
-                     │ status      │
-      ┌──────────┐   └──────┬──────┘
-      │ courses  │          │
-      │──────────│          ▼
-      │ id (PK)  │    ┌──────────┐
-      │ name     │    │  files   │
-      │teacher_id│    │──────────│
-      │created_at│    │homework_id│
-      └──────────┘    │ url      │
-                      │ name     │
-                      │ size     │
-                      └──────────┘
-```
-
-| Tabla | Columnas principales | Relaciones | Descripción |
-|---|---|---|---|
-| `users` | `id, email, name, role, created_at` | FK → `auth.users` | Perfiles extendidos. Referencia a la tabla `auth.users` de Supabase. |
-| `homeworks` | `id, title, description, due_date, status, user_id, course_id` | FK `users`, `courses` | Tabla principal de tareas. Vinculada a un usuario y un curso. |
-| `courses` | `id, name, description, teacher_id, created_at` | FK `users` (teacher) | Cursos o materias. El `teacher_id` apunta al docente encargado. |
-| `grades` | `id, homework_id, user_id, score, feedback, graded_at` | FK `homeworks`, `users` | Calificaciones asignadas a cada tarea por usuario. |
-| `files` | `id, homework_id, url, name, size, created_at` | FK `homeworks` | Archivos adjuntos almacenados en Supabase Storage. |
-
-> **Row Level Security (RLS):** Todas las tablas tienen RLS habilitado. Las políticas SQL garantizan que un usuario solo pueda leer y modificar sus propios registros. Ejemplo: un usuario con `role="student"` solo ve sus propios `homeworks`.
-
----
 
 ## 6. Paso a Paso del Desarrollo
 
