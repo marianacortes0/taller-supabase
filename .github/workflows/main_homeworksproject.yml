@@ -1,4 +1,4 @@
-name: Build and deploy React Vite app to Azure Web App - homeworksproject
+name: Build and deploy React Vite to Azure Web App - homeworksproject
 
 on:
   push:
@@ -18,27 +18,22 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'               # ✅ cachea node_modules entre runs
+          node-version: '20.x'  # Vite funciona mejor con Node 20
 
-      - name: Install dependencies
-        run: npm ci                  # más reproducible que npm install en CI
+      - name: Instalar dependencias
+        run: npm ci
 
       - name: Build
         run: npm run build
         env:
-          # ✅ Supabase: deben estar en Settings > Secrets del repo
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Copy web.config to dist   # ✅ necesario para que IIS sirva la SPA
-        run: cp web.config dist/web.config
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: static-app
-          path: dist                 # ✅ solo el output del build, no el repo completo
+          name: node-app
+          path: ./dist          # ← solo dist, no todo el proyecto
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,18 +46,18 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: static-app
+          name: node-app
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_377807F10084430F803790A248EABAE5 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F1B8AA5E901344ECAF261394722D45DF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_03BE4D9863304BCBB3B83589CFEFD057 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5655D148DFFE4E6EBD13A1DC5958EDB1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_43032F4DB26E4B86988994F922E7B27E }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F855B88FB06749A7A75D1DBE14644423 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'homeworksproject'
           slot-name: 'Production'
-          package: .
+          package: .            # ← artifact ya descargado es el contenido de dist
