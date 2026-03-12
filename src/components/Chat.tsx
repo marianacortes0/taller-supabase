@@ -1,6 +1,6 @@
 // src/components/Chat.tsx
 import { useState, useRef, useEffect } from 'react'
-import { useChat, type ChatMessage } from '../hooks/useChat'
+import { useChat } from '../hooks/useChat'
 
 /* ─── Styles ──────────────────────────────────────────── */
 const styles = {

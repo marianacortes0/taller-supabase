@@ -2,7 +2,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
-import { StatCard } from '../components/Dashboard/StatCard'
 import { TaskChart } from '../components/Dashboard/TaskChart'
 import { DonutChart } from '../components/Dashboard/DonutChart'
 import { ActivityFeed } from '../components/Dashboard/ActivityFeed'

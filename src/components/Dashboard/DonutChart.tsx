@@ -26,6 +26,11 @@ export function DonutChart({ data }: { data: any[] }) {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                     </Pie>
+                    {/* Total en el centro del donut */}
+                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                        <tspan x="50%" dy="-0.3em" style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{total}</tspan>
+                        <tspan x="50%" dy="1.4em" style={{ fontSize: '0.7rem', fill: '#666' }}>tareas</tspan>
+                    </text>
                     <Tooltip formatter={(v) => [`${v} tareas`]} />
                     <Legend />
                 </PieChart>
